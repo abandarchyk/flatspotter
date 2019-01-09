@@ -11,6 +11,9 @@ def create_table():
     c.execute('CREATE TABLE IF NOT EXISTS onliner_results(flat_id TEXT, address TEXT, total_price REAL,'
               'sqmeter_price REAL, num_of_rooms INT, floor INT, num_of_floors INT, total_area REAL, created_date TEXT,'
               'updated_date TEXT)')
+
+    c.execute('CREATE TABLE IF NOT EXISTS history(flat_id TEXT, updated_date TEXT, total_price REAL)')
+
     conn.commit()
 
 
@@ -26,12 +29,13 @@ def close():
 
 def save_results(flat: Flat):
     logger.info('Saving results to DB for flat: ' + str(flat.flat_id))
-    serialized_flat = pickle.dumps(flat)
+    # dedup logic
     c.execute('INSERT INTO onliner_results(flat_id, address, total_price, sqmeter_price, num_of_rooms, floor, num_of_floors,'
               'total_area, created_date, updated_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
               (flat.flat_id, flat.address, flat.total_price, flat.sqmeter_price, flat.num_of_rooms, flat.floor,
                flat.num_of_floors, flat.total_area, flat.created_date, flat.updated_date))
     conn.commit()
+
 
 def show_from_db(site_url):
     logger.info('Fetching results from DB by: ' + site_url)
