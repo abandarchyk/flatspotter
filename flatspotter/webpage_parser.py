@@ -21,7 +21,14 @@ class Flat:
         self.updated_date = updated_date
 
     def __pretty_print__(self):
-        return 'FLAT ID: ' + str(self.flat_id)
+        rooms = 'Rooms: ' + str(self.num_of_rooms)
+        address = 'Address: ' + self.address
+        price = 'Price: ' + str(self.total_price)
+        area = 'Area: ' + str(self.total_area)
+        sqmprice = 'Price \ meter: ' + str(self.sqmeter_price)
+        floors = 'Floor: ' + str(self.floor) + ' from ' + str(self.num_of_floors)
+        fid = 'Link: ' + self.flat_id
+        return rooms + '\n' + address + '\n' + price + '\n' + area + '\n' + sqmprice + '\n' + floors + '\n' + fid
 
     def __str__(self):
         return self.__pretty_print__()
@@ -46,8 +53,8 @@ def create_onliner_flats(flats_rs: json):
         flat.floor = flat_element['floor']
         flat.num_of_floors = flat_element['number_of_floors']
         flat.total_area = flat_element['area']['total']
-        flat.created_date = flat_element['created_at']
-        flat.updated_date = flat_element['last_time_up']
+        flat.created_date = flat_element['created_at'].split('T')[0]
+        flat.updated_date = flat_element['last_time_up'].split('T')[0]
         flat.sqmeter_price = trunc(flat.total_price / flat.total_area)
         flats.append(flat)
     flats = [flat for flat in flats if flat.floor > 2]
