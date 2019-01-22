@@ -39,7 +39,13 @@ def http_get(url: str):
     response = requests.get(url)
     if response.status_code is not 200:
         raise RuntimeError('HTTP Error. Response status code is: ' + response.status_code)
-    return response.content
+    return response
+
+def http_post(url: str, headers: dict, data: dict):
+    logger.info('HTTP: POST ' + url)
+    response = requests.post(url, headers=headers, data=data)
+    return response
+
 
 
 def create_onliner_flats(flats_rs: json):
