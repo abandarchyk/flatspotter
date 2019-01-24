@@ -1,7 +1,9 @@
 import requests
 from math import trunc
-import fslogger
+import re
 import json
+from bs4 import BeautifulSoup
+from core import fslogger
 
 logger = fslogger.get_logger(__name__)
 
@@ -65,3 +67,70 @@ def create_onliner_flats(flats_rs: json):
         flats.append(flat)
     flats = [flat for flat in flats if flat.floor > 2]
     return flats
+
+
+def __extract_numbers__(input_str: str):
+    return re.findall(r'\d*[.,]?\d+|\d+', input_str)
+
+
+class HttpTransport:
+
+    def __init__(self, base_url):
+        self.base_url = base_url
+
+    def http_get(self, url):
+        return ''
+
+    def http_post(self):
+        pass
+
+
+class RealtResponseParser:
+
+    def __init__(self, response):
+        self.response = response
+
+    def parse(self):
+            with open('data/rs.htm', mode='r', encoding='UTF-8') as html:
+                soup = BeautifulSoup(html, 'html.parser')
+                logger.debug('Web page source:\n' + str(soup.prettify()))
+                tags = soup.find_all(attrs={'class': 'bd-table-item-header'})
+                for taag in tags:
+                    divs = taag.find_all(name='div')
+                    href = divs[2].a['href']
+                    address = divs[2].a['title']
+                    floors = __extract_numbers__(divs[3].span.text)
+                    floor = floors[0]
+                    from_floors = floors[1]
+                    space = __extract_numbers__(divs[4].span.text)
+                    total_space = space[0]
+                    leaving_space = space[1]
+                    kitchen_space = space[2]
+                    year = str.strip(divs[5].span.text)
+                    prices = divs[7].find_all(name='span')
+                    price_total = ''.join([ch for ch in prices[0]['data-0'] if str.isdigit(ch)])
+                    price_meter = ''.join([ch for ch in prices[1]['data-0'] if str.isdigit(ch)])
+                    print(href)
+                    print(price_total)
+                    print(price_meter)
+                    print(address)
+                    print(floor)
+                    print(from_floors)
+                    print(total_space)
+                    print(leaving_space)
+                    print(kitchen_space)
+                    print(year)
+                    print('--------')
+
+
+class FlatFinderService:
+
+    def __init__(self, base_url):
+        self.HttpTransport = HttpTransport(base_url)
+
+    def find_flats(self, flats_search_rq):
+        rs1 = self.HttpTransport.http_get(flats_search_rq.params)
+        token = rs1.token
+        rs2 = self.HttpTransport.http_get(token)
+        flist = RealtResponseParser(rs2).parse()
+        return list(flist)
